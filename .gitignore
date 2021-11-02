@@ -1,0 +1,5 @@
+*.json
+venv
+.env
+
+sandbox-purchase-completed-headers.txt
