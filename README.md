@@ -6,6 +6,8 @@ Set env vars:
 * `SUPPORT_EMAIL` -- email address for customers to use for support requests
 * `GOOGLE_GROUP_ID` -- id number for the google group
 * `GOOGLE_GROUP_NAME` -- name (email address) identifying the google group
+* `SANDBOX_GOOGLE_GROUP_ID` -- id number for the sandboxgoogle group
+* `SANDBOX_GOOGLE_GROUP_NAME` -- name (email address) identifying the sandbox google group
 * `PAYPAL_WEBHOOK_ID_SANDBOX`
 * `PAYPAL_WEBHOOK_ID_LIVE`
 * `SENDGRID_EMAIL_API_KEY` -- the sendgrid secret api key. Set this via GCP
@@ -28,7 +30,20 @@ Mock transactions sent via the developer portal will not have `custom_id` and
 security-assignments.com/store _will_ have these fields.
 
 
-## Grant GROUP ADMIN role to the service account
+## Create the target google group
+
+1. On <https://admin.google.com>, set it so that members external to the
+organization can be members of the group.
+1. Fetch the google group's new id. Use <https://developers.google.com/admin-sdk/directory/reference/rest/v1/groups/list?apix_params=%7B%22customer%22%3A%22my_customer%22%7D> to find it.
+
+
+
+## Give the service account access to the google group
+
+Add the service account's email address as an "owner" member of the google group.
+This should give the service account permissions to manage group membership.
+
+**Alternatively**, grant GROUP ADMIN role to the service account as follows:
 
 The service account that runs the cloud function needs permissions to manage google
 groups for the domain.
@@ -42,7 +57,7 @@ Follow this guide: <https://cloud.google.com/identity/docs/how-to/setup#auth-no-
 
 ## Development
 
-Note that _certain_ (not all) @example.com emails will fail if they are
+Note that _certain_ (not all) **@example.com** emails will fail if they are
 attempted to be added to a google group. I don't know why and I can't discern a
 pattern. But adding a legitimate email address hasn't failed on me yet.
 

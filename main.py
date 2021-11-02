@@ -22,9 +22,14 @@ def do_webhook(request):
     webhook_event_json = request.get_json()
     gcp_email = webhook_event_json['resource']['invoice_id']
 
+    if 'sandbox' in request.headers.get('Paypal-Cert-Url'):
+        mode = 'sandbox'
+    else:
+        mode = 'live'
+
     to_emails = [gcp_email]
     try:
-        add_to_google_group(gcp_email)
+        add_to_google_group(gcp_email, mode)
         result_adverb = "successfully"
         extra_message = (
             '<br/> Your gcp email should now have access to the security-assignments.com lab virtual machines.'
@@ -41,7 +46,11 @@ def do_webhook(request):
         to_emails.append(support_email)
 
     subject = f"User {result_adverb} added to google group"
-    google_group = os.environ['GOOGLE_GROUP_NAME']
+    if mode == 'live':
+        google_group = os.environ['GOOGLE_GROUP_NAME']
+    else:
+        google_group = os.environ['SANDBOX_GOOGLE_GROUP_NAME']
+        subject += ' (sandbox)'
     content = f'Hello, your gcp email <strong>{gcp_email}</strong> was {result_adverb} addded to the <strong>{google_group}</strong> google group.'
     if extra_message:
         content += f'{extra_message}'
@@ -74,7 +83,7 @@ def paypal_verify(request):
     return verified
 
 
-def add_to_google_group(member_key):
+def add_to_google_group(member_key, mode):
     with build('cloudidentity', 'v1') as service:
         membership = {
           "preferredMemberKey": {
@@ -85,7 +94,12 @@ def add_to_google_group(member_key):
           }
         }
 
-        response = service.groups().memberships().create(parent=f"groups/{os.environ['GOOGLE_GROUP_ID']}", body=membership).execute()
+        if mode == 'live':
+            group_id = os.environ['GOOGLE_GROUP_ID']
+        else:
+            group_id = os.environ['SANDBOX_GOOGLE_GROUP_ID']
+
+        response = service.groups().memberships().create(parent=f"groups/{group_id}", body=membership).execute()
 
 
 # https://github.com/sendgrid/sendgrid-python/blob/main/use_cases/send_a_single_email_to_multiple_recipients.md
