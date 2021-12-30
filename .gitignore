@@ -1,5 +1,6 @@
 *.json
 venv
 .env
+__pycache__
 
 sandbox-purchase-completed-headers.txt

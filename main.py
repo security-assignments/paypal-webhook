@@ -6,28 +6,56 @@ from sendgrid.helpers.mail import Mail
 from googleapiclient.discovery import build
 from googleapiclient.errors import HttpError
 import os
+import hashlib
+from dotenv import load_dotenv
+
+load_dotenv()
 
 
 def do_webhook(request):
 
     if not "PAYPAL_MOCK" in os.environ:
-        verified = paypal_verify(request)
-        if not verified:
+        paypal_verified = paypal_verify(request)
+        if not paypal_verified:
             print(request.headers)
             print(request.get_data().decode('utf-8'))
             raise Exception('Paypal transaction did not verify! See logs.')
+
+
 
     # https://developer.paypal.com/docs/api-basics/notifications/webhooks/notification-messages/
     # https://developer.paypal.com/docs/api/orders/v1/#orders_get
     webhook_event_json = request.get_json()
     gcp_email = webhook_event_json['resource']['invoice_id']
+    amount = webhook_event_json['resource']['amount']['value']
+    custom_sig = webhook_event_json['resource']['custom_id']
+    support_email = os.environ['SUPPORT_EMAIL']
+    to_emails = [ gcp_email ]
+    extra_message = ''
 
-    if 'sandbox' in request.headers.get('Paypal-Cert-Url'):
-        mode = 'sandbox'
+    if not "PAYPAL_MOCK" in os.environ:
+        if 'sandbox' in request.headers.get('Paypal-Cert-Url'):
+            mode = 'sandbox'
+        else:
+            mode = 'live'
     else:
-        mode = 'live'
+        mode = 'sandbox'
 
-    to_emails = [gcp_email]
+
+    custom_sig_verified = custom_sig_verify(gcp_email, amount, custom_sig)
+    if not custom_sig_verified:
+
+        to_emails.append(support_email)
+        extra_message =  (
+            f'<br/> Error reason: bad signature.'
+            f'<br/> This error has been reported to <strong>{support_email}</strong>. You should receive help soon.'
+        )
+        result_adverb='unsuccessfully'
+
+        send_an_email(to_emails, mode, result_adverb, gcp_email, extra_message)
+
+        return '', 200
+
     try:
         add_to_google_group(gcp_email, mode)
         result_adverb = "successfully"
@@ -36,7 +64,6 @@ def do_webhook(request):
         )
         to_emails.append('access-granted@security-assignments.com')
     except HttpError as e:
-        support_email = os.environ['SUPPORT_EMAIL']
         extra_message = (
             f'<br/> Error response status code : {e.status_code}, reason : {e.error_details}'
             '<br/>'
@@ -45,12 +72,24 @@ def do_webhook(request):
         result_adverb = "unsuccessfully"
         to_emails.append(support_email)
 
+    send_an_email(to_emails, mode, result_adverb, gcp_email, extra_message)
+
+
+
+    return '', 200
+
+
+def send_an_email(to_emails, mode, result_adverb, gcp_email, extra_message = ''):
+
     subject = f"User {result_adverb} added to google group"
+
     if mode == 'live':
         google_group = os.environ['GOOGLE_GROUP_NAME']
     else:
         google_group = os.environ['SANDBOX_GOOGLE_GROUP_NAME']
         subject += ' (sandbox)'
+
+
     content = f'Hello, your gcp email <strong>{gcp_email}</strong> was {result_adverb} addded to the <strong>{google_group}</strong> google group.'
     if extra_message:
         content += f'{extra_message}'
@@ -58,7 +97,7 @@ def do_webhook(request):
 
     send_email(to_emails, subject, content)
 
-    return '', 200
+    pass
 
 
 def paypal_verify(request):
@@ -81,6 +120,18 @@ def paypal_verify(request):
     verified = WebhookEvent.verify(
       transmission_id, timestamp, webhook_id, event_body, cert_url, actual_signature, auth_algo)
     return verified
+
+
+def custom_sig_verify(gcp_email, amount, custom_sig):
+
+    SHARED_SECRET = os.environ['PAYPAL_SHARED_SECRET']
+
+    hash_me = f'{gcp_email}|{amount}|{SHARED_SECRET}'
+    m = hashlib.sha256()
+    m.update(hash_me.encode())
+    sig = m.hexdigest()
+
+    return sig == custom_sig
 
 
 def add_to_google_group(member_key, mode):

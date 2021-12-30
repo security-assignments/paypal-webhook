@@ -62,6 +62,12 @@ attempted to be added to a google group. I don't know why and I can't discern a
 pattern. But adding a legitimate email address hasn't failed on me yet.
 
 
+### Run locally
+
+```bash
+functions_framework --target=main --debug
+```
+
 ## Deploy
 
 ```bash
@@ -73,7 +79,7 @@ gcloud beta functions deploy security-assignments-purchase \
   --trigger-http \
   --region us-central1 \
   --security-level secure-always \
-  --set-secrets 'SENDGRID_EMAIL_API_KEY=SENDGRID_EMAIL_API_KEY:latest'
+  --set-secrets 'SENDGRID_EMAIL_API_KEY=SENDGRID_EMAIL_API_KEY:latest,PAYPAL_SHARED_SECRET=PAYPAL_SHARED_SECRET:latest'
 ```
 
 View trigger-http url (and more info):
