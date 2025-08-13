@@ -2,7 +2,7 @@
 
 Set env vars:
 
-* `SENDGRID_FROM_EMAIL` -- the from-address for the email sendgrid will send
+* `FROM_EMAIL` -- the from-address for the email. This needs to be either the same as or an alias of the account being impersonated.
 * `SUPPORT_EMAIL` -- email address for customers to use for support requests
 * `GOOGLE_GROUP_ID` -- id number for the google group
 * `GOOGLE_GROUP_NAME` -- name (email address) identifying the google group
@@ -10,8 +10,10 @@ Set env vars:
 * `SANDBOX_GOOGLE_GROUP_NAME` -- name (email address) identifying the sandbox google group
 * `PAYPAL_WEBHOOK_ID_SANDBOX`
 * `PAYPAL_WEBHOOK_ID_LIVE`
-* `SENDGRID_EMAIL_API_KEY` -- the sendgrid secret api key. Set this via GCP
-  Secrets and expose as an env var.
+* `GSUITE_ADMIN_USER` -- the Google Workspace user to impersonate. Emails will be sent from this account, or from an alias of this account.
+
+The service account running the cloud run function needs to have Workspace domain-wide delegation rights.
+
 
 If paypal mock transactions are being used and paypal validation should be
 skipped, set `PAYPAL_MOCK` env var.
@@ -68,18 +70,41 @@ pattern. But adding a legitimate email address hasn't failed on me yet.
 functions_framework --target=main --debug
 ```
 
+The following:
+
+* Runs with service account credentials
+* Skips the paypal signature verification (that it originated from paypal)
+* Skips the purchase signature verification (that the paypal order was created by the paypal-order-create function)
+
+
+```bash
+SKIP_CUSTOM_SIG_VERIFIED=1 GOOGLE_APPLICATION_CREDENTIALS=security-assignments-kali-962c34ad5d71.json LOCAL_DEV=1 PAYPAL_MOCK=1 functions-framework --target=do_webhook --debug --source=main.py --port 8082
+```
+
+Send a local request using an example webhook body, copied from the [paypal webhook event logs](https://developer.paypal.com/dashboard/webhooks/sandbox): 
+
+```sh
+curl --data "@example-webhook-body.json" http://localhost:8082 --header "Content-Type: application/json"
+```
+
+
+### Verify the paypal webhook
+
+`verify.py` is a test script for verifying the paypal web hook using the [`verify-webhook-signature` paypal API endpoint](https://developer.paypal.com/docs/api/webhooks/v1/#verify-webhook-signature_post).
+
+
 ## Deploy
 
 ```bash
 gcloud beta functions deploy security-assignments-purchase \
   --entry-point do_webhook \
   --allow-unauthenticated \
-  --runtime python37 \
+  --runtime python39 \
   --env-vars-file env.yml \
   --trigger-http \
   --region us-central1 \
   --security-level secure-always \
-  --set-secrets 'SENDGRID_EMAIL_API_KEY=SENDGRID_EMAIL_API_KEY:latest,PAYPAL_SHARED_SECRET=PAYPAL_SHARED_SECRET:latest'
+  --set-secrets 'PAYPAL_LIVE_CLIENT_SECRET=PAYPAL_LIVE_CLIENT_SECRET:latest,PAYPAL_SANDBOX_CLIENT_SECRET=PAYPAL_SANDBOX_CLIENT_SECRET:latest,PAYPAL_SHARED_SECRET=PAYPAL_SHARED_SECRET:latest'
 ```
 
 View trigger-http url (and more info):

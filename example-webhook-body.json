@@ -1,0 +1,102 @@
+{
+    "id": "WH-0T975963F5930404W-9AK51205WN370144T",
+    "create_time": "2025-08-12T22:15:53.028Z",
+    "resource_type": "capture",
+    "event_type": "PAYMENT.CAPTURE.COMPLETED",
+    "summary": "Payment completed for $ 50.0 USD",
+    "resource": {
+      "amount": {
+        "value": "50.00",
+        "currency_code": "USD"
+      },
+      "seller_protection": {
+        "dispute_categories": [
+          "ITEM_NOT_RECEIVED",
+          "UNAUTHORIZED_TRANSACTION"
+        ],
+        "status": "ELIGIBLE"
+      },
+      "create_time": "2025-08-12T22:15:48Z",
+      "custom_id": "096fee8e3edd44e912362411111c38c8afece5b5e8adc5741adb5512fbe37199",
+      "payee": {
+        "email_address": "paypal-sandbox-payee@daveeargle.com",
+        "merchant_id": "BPTCJFX8LLT2J"
+      },
+      "supplementary_data": {
+        "related_ids": {
+          "order_id": "7ET427038W466131N"
+        }
+      },
+      "update_time": "2025-08-12T22:15:48Z",
+      "final_capture": true,
+      "seller_receivable_breakdown": {
+        "paypal_fee": {
+          "value": "2.24",
+          "currency_code": "USD"
+        },
+        "gross_amount": {
+          "value": "50.00",
+          "currency_code": "USD"
+        },
+        "net_amount": {
+          "value": "47.76",
+          "currency_code": "USD"
+        }
+      },
+      "invoice_id": "dave@daveeargle.com",
+      "links": [
+        {
+          "method": "GET",
+          "rel": "self",
+          "href": "https://api.sandbox.paypal.com/v2/payments/captures/9E510401ES1479703"
+        },
+        {
+          "method": "POST",
+          "rel": "refund",
+          "href": "https://api.sandbox.paypal.com/v2/payments/captures/9E510401ES1479703/refund"
+        },
+        {
+          "method": "GET",
+          "rel": "up",
+          "href": "https://api.sandbox.paypal.com/v2/checkout/orders/7ET427038W466131N"
+        }
+      ],
+      "id": "9E510401ES1479703",
+      "status": "COMPLETED"
+    },
+    "status": "PENDING",
+    "transmissions": [
+      {
+        "webhook_url": "https://us-central1-security-assignments-kali.cloudfunctions.net/security-assignments-purchase",
+        "http_status": 500,
+        "reason_phrase": "Internal Server Error",
+        "response_headers": {
+          "date": "Wed, 13 Aug 2025 02:59:39 GMT",
+          "server": "Google Frontend",
+          "function-execution-id": "z9ie7vydyywv",
+          "x-cloud-trace-context": "4fadabd28b195121d050dc107ebdc5f0;o=1",
+          "content-type": "text/html; charset=utf-8",
+          "Content-Length": "181"
+        },
+        "transmission_id": "05764da2-77cf-11f0-93b4-5707eb3ce029",
+        "status": "PENDING",
+        "timestamp": "2025-08-12T22:52:28Z"
+      }
+    ],
+    "links": [
+      {
+        "href": "https://api.sandbox.paypal.com/v1/notifications/webhooks-events/WH-0T975963F5930404W-9AK51205WN370144T",
+        "rel": "self",
+        "method": "GET",
+        "encType": "application/json"
+      },
+      {
+        "href": "https://api.sandbox.paypal.com/v1/notifications/webhooks-events/WH-0T975963F5930404W-9AK51205WN370144T/resend",
+        "rel": "resend",
+        "method": "POST",
+        "encType": "application/json"
+      }
+    ],
+    "event_version": "1.0",
+    "resource_version": "2.0"
+  }

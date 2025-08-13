@@ -6,3 +6,4 @@ google-auth-httplib2
 sendgrid~=6.8.3
 python-dotenv
 functions-framework
+pyyaml

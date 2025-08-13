@@ -1,5 +1,6 @@
 *.json
 venv
+!example-webhook-body.json
 .env
 __pycache__
 
