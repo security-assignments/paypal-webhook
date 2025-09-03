@@ -96,7 +96,7 @@ curl --data "@example-webhook-body.json" http://localhost:8082 --header "Content
 ## Deploy
 
 ```bash
-gcloud beta functions deploy security-assignments-purchase \
+gcloud functions deploy security-assignments-purchase \
   --entry-point do_webhook \
   --allow-unauthenticated \
   --runtime python39 \
@@ -104,11 +104,29 @@ gcloud beta functions deploy security-assignments-purchase \
   --trigger-http \
   --region us-central1 \
   --security-level secure-always \
-  --set-secrets 'PAYPAL_LIVE_CLIENT_SECRET=PAYPAL_LIVE_CLIENT_SECRET:latest,PAYPAL_SANDBOX_CLIENT_SECRET=PAYPAL_SANDBOX_CLIENT_SECRET:latest,PAYPAL_SHARED_SECRET=PAYPAL_SHARED_SECRET:latest'
+  --set-secrets 'PAYPAL_LIVE_CLIENT_SECRET=PAYPAL_LIVE_CLIENT_SECRET:latest,PAYPAL_SANDBOX_CLIENT_SECRET=PAYPAL_SANDBOX_CLIENT_SECRET:latest,PAYPAL_SHARED_SECRET=PAYPAL_SHARED_SECRET:latest' \
+  --service-account security-assignments-kali@appspot.gserviceaccount.com
 ```
 
 View trigger-http url (and more info):
 
 ```bash
-gcloud beta functions describe security-assignments-purchase
+gcloud functions describe security-assignments-purchase
+```
+
+
+# Sandbox
+
+```sh
+gcloud functions deploy security-assignments-purchase-sandbox \
+  --entry-point do_webhook \
+  --allow-unauthenticated \
+  --runtime python39 \
+  --env-vars-file env.yml \
+  --trigger-http \
+  --region us-central1 \
+  --security-level secure-always \
+  --set-secrets 'PAYPAL_LIVE_CLIENT_SECRET=PAYPAL_LIVE_CLIENT_SECRET:latest,PAYPAL_SANDBOX_CLIENT_SECRET=PAYPAL_SANDBOX_CLIENT_SECRET:latest,PAYPAL_SHARED_SECRET=PAYPAL_SHARED_SECRET:latest' \
+  --service-account security-assignments-kali@appspot.gserviceaccount.com
+
 ```

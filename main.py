@@ -53,9 +53,6 @@ def do_webhook(request):
 
     buyer_email = (
         payload.get("resource", {})
-            .get("payee", {})
-            .get("email_address")
-        or payload.get("resource", {})
             .get("payer", {})
             .get("email_address")
         or payload.get("resource", {})
@@ -66,6 +63,7 @@ def do_webhook(request):
             .get("subscriber", {})
             .get("email_address")
     )
+    print(payload.get("resource"))
 
     if buyer_email:
         to_emails.append(buyer_email)
@@ -154,6 +152,8 @@ def verify_webhook(headers, body):
     headers: dict from incoming request
     body: raw request data (str), not parsed JSON
     """
+
+    print(headers)
 
     if "sandbox" in headers["Paypal-Cert-Url"]:
         PAYPAL_BASE = "https://api-m.sandbox.paypal.com"
@@ -292,7 +292,7 @@ def send_email(to_emails, subject, content):
     message = EmailMessage()
     message.set_content(content, subtype="html")
     
-    print(to_emails)
+    print(f"To emails: {to_emails}")
     message["To"] = ", ".join(to_emails)
     message["From"] = from_email
     message["Subject"] = subject
